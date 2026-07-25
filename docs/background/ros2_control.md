@@ -3,7 +3,7 @@
 ## Overview
 ROS2 Control is a set of packages that incldue controller interfaces, controller managers, transmissions, and hardware interfaces. Overal, the goal of the ROS2 Control framework is to simplify integrating new hardware. A high level diagram of the architecture is shown below. 
 
-![alt text](image.png)
+![alt text](images/ROS2_Control.png)
 
 ### Controller Manager
 The controller manager (CM) connects the controllers and the hardware-abstraction sides of the control framework. The CM manages controllers (loads, activates, etc.) controllers and interfaces they require. Through the Resource Manager it has access to the hardware components and its interfaces. The CM then matches the required and provided interfaces, granting controllers access to hardware.

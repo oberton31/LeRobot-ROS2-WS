@@ -1,7 +1,7 @@
 # Gazebo
 
 ## Overview
-Gazebo is an open source robotics simulator maintained by Open Robotics. As Open Robotics also maintains ROS, there is strong ROS support while using the Gazebo platform. Namely, the ROS-Gazebo bridge maps internal simulation topics to standard ROS2 topics, emulating sensors. Additionally, the ROS2 control Gazebo plugin allows you to emulate control inputs, exposing them in an identical fashion as the actual sensors would. For the full Gazebo simulation, see the link [https://gazebosim.org/home](here).
+Gazebo is an open source robotics simulator maintained by Open Robotics. As Open Robotics also maintains ROS, there is strong ROS support while using the Gazebo platform. Namely, the ROS-Gazebo bridge maps internal simulation topics to standard ROS2 topics, emulating sensors. Additionally, the ROS2 control Gazebo plugin allows you to emulate control inputs, exposing them in an identical fashion as the actual sensors would. For the full Gazebo simulation, see the link [here](https://gazebosim.org/home).
 
 ## Scene Files
 Denoted with the .sdf filename, these files contain information on the underlying gazebo scene. Using these scene files, you can spawn in a world scene, as well as a robot (note that .urdf files cannot be spawned in this way)

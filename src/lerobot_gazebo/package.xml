@@ -3,13 +3,14 @@
 <package format="3">
   <name>lerobot_gazebo</name>
   <version>0.0.0</version>
-  <description> ROS 2 package providing the description files (URDF/Xacro), launch files, and
-    configuration for the LeRobot SO101 robotic arm, supporting simulation and visualization in ROS
-    2. </description>
-  <maintainer email="roboguru.92@gmail.com">pavankv</maintainer>
+  <description> ROS 2 package providing Gazebo simulation support for the LeRobot SO101 robotic arm. </description>
+  <maintainer email="bertonoliver50@gmail.com">oberton31</maintainer>
   <license>Apache-2.0</license>
 
-  <buildtool_depend>ament_cmake</buildtool_depend>
+  <buildtool_depend>ament_python</buildtool_depend>
+
+  <depend>rclpy</depend>
+  <depend>std_msgs</depend>
 
   <exec_depend>lerobot_description</exec_depend>
   <exec_depend>robot_state_publisher</exec_depend>
@@ -21,10 +22,7 @@
   <exec_depend>ros_gz_bridge</exec_depend>
   <exec_depend>ros2launch</exec_depend>
 
-  <test_depend>ament_lint_auto</test_depend>
-  <test_depend>ament_lint_common</test_depend>
-
   <export>
-    <build_type>ament_cmake</build_type>
+    <build_type>ament_python</build_type>
   </export>
 </package>

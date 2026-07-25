@@ -18,6 +18,7 @@ controller_manager:
     joint_state_broadcaster:
       type: joint_state_broadcaster/JointStateBroadcaster
 
+# in the URDF, joints were not named, just numbered 1-6, joint names need to match here
 arm_controller:
   ros__parameters:
     joints:
