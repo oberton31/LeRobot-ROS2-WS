@@ -63,17 +63,29 @@ def generate_launch_description():
             "/controller_manager",
         ],
     )
+    
+    arm_streaming_controller_spawner = Node(
+            package="controller_manager",
+            executable="spawner",
+            arguments=["arm_streaming_controller", "--controller-manager", "/controller_manager"],
+        )
 
-    arm_controller_spawner = Node(
+    arm_trajectory_controller_spawner = Node(
         package="controller_manager",
         executable="spawner",
-        arguments=["arm_controller", "--controller-manager", "/controller_manager"],
+        arguments=["arm_trajectory_controller", "--controller-manager", "/controller_manager", "--inactive"],
+    )
+    
+    gripper_streaming_controller_spawner = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=["gripper_streaming_controller", "--controller-manager", "/controller_manager"],
     )
 
-    gripper_controller_spawner = Node(
+    gripper_trajectory_controller_spawner = Node(
         package="controller_manager",
         executable="spawner",
-        arguments=["gripper_controller", "--controller-manager", "/controller_manager"],
+        arguments=["gripper_trajectory_controller", "--controller-manager", "/controller_manager", "--inactive"],
     )
 
     return LaunchDescription(
@@ -82,7 +94,9 @@ def generate_launch_description():
             robot_state_publisher_node,
             controller_manager,
             joint_state_broadcaster_spawner,
-            arm_controller_spawner,
-            gripper_controller_spawner,
+            arm_streaming_controller_spawner,
+            arm_trajectory_controller_spawner,
+            gripper_trajectory_controller_spawner,
+            gripper_streaming_controller_spawner,
         ]
     )

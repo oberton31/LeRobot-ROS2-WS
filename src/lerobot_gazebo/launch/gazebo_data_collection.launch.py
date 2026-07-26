@@ -34,7 +34,8 @@ def generate_launch_description():
         package="lerobot_gazebo",
         executable="lerobot_ros2_bridge",
         name="lerobot_ros2_bridge",
-        output="screen"
+        output="screen",
+        parameters=[{"use_sim_time": True}]
     )
     
         

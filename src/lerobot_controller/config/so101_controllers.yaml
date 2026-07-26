@@ -1,17 +1,30 @@
+# TODO: add joint STREAMING service
+
+# What else: use streaming service for the VLA data collection/deployment. Can use controller manager
+# to switch between controllers with a service call later on, and will use joint trajectory during classic planning
+
+# update lerobot_ros2_bridge to match this new streaming controller type
+
 controller_manager:
   ros__parameters:
-    update_rate: 10 # Hz
+    update_rate: 50 # Hz
 
     # Controller for executing joint-space trajectories on a group of joints. 
     # The controller interpolates in time between the points so that their distance can be arbitrary. 
     # Even trajectories with only one point are accepted.  Trajectories are specified as a set of 
     # waypoints to be reached at specific time instants, which the controller attempts to execute 
     # as well as the mechanism allows. Waypoints consist of positions, and optionally velocities and accelerations.
-    arm_controller:
+    arm_trajectory_controller:
       type: joint_trajectory_controller/JointTrajectoryController
 
-    gripper_controller:
+    arm_streaming_controller:
+      type: forward_command_controller/ForwardCommandController
+
+    gripper_trajectory_controller:
       type: joint_trajectory_controller/JointTrajectoryController
+    
+    gripper_streaming_controller:
+      type: forward_command_controller/ForwardCommandController
 
     # reads all state interfaces and reports them on /joint_states, which robot_state_publisher subscribes to
     # and uses to update its frames
@@ -19,7 +32,7 @@ controller_manager:
       type: joint_state_broadcaster/JointStateBroadcaster
 
 # in the URDF, joints were not named, just numbered 1-6, joint names need to match here
-arm_controller:
+arm_trajectory_controller:
   ros__parameters:
     joints:
       - "1"
@@ -34,14 +47,24 @@ arm_controller:
     state_interfaces: # state interfaces specify what feedback data the controller expects
       - position
 
-    open_loop_control: true
+    open_loop_control: true # PID control used in lower-level to track commanded positions
     allow_integration_in_goal_trajectories: true
+  
+arm_streaming_controller:
+  ros__parameters:
+    joints:
+      - "1"
+      - "2"
+      - "3"
+      - "4"
+      - "5"
 
-gripper_controller:
+    interface_name: position
+
+gripper_trajectory_controller:
   ros__parameters:
     joints:
       - "6"
-    interface_name: position
 
     command_interfaces:
       - position
@@ -51,3 +74,10 @@ gripper_controller:
 
     open_loop_control: true
     allow_integration_in_goal_trajectories: true
+
+gripper_streaming_controller:
+  ros__parameters:
+    joints:
+      - "6"
+
+    interface_name: position

@@ -2,7 +2,7 @@
 import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import JointState, Image
-from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
+from std_msgs.msg import Float64MultiArray
 import numpy as np
 from cv_bridge import CvBridge
 from multiprocessing.shared_memory import SharedMemory
@@ -21,6 +21,8 @@ class ROS2GazeboBridgeNode(Node):
             "6",  # Gripper
         ]
         self.num_joints = 6
+
+        self.set_parameters([rclpy.parameter.Parameter('use_sim_time', rclpy.Parameter.Type.BOOL, True)])
 
         # buffer specs
         self.img_shape = (480, 640, 3)
@@ -47,23 +49,31 @@ class ROS2GazeboBridgeNode(Node):
         self.create_subscription(Image, "/overhead_camera/image_raw", self._cam_overhead_cb, 10)
         self.create_subscription(Image, "/wrist_camera/image_raw", self._cam_wrist_cb, 10)
 
-        # Publishers
-        self.arm_action_pub = self.create_publisher(JointTrajectory, "/arm_controller/joint_trajectory", 10)
-        self.gripper_action_pub = self.create_publisher(JointTrajectory, "/gripper_controller/gripper_command", 10)
+        # publishers for ForwardCommandControllers (streaming mode)
+        self.arm_action_pub = self.create_publisher(
+            Float64MultiArray, "/arm_streaming_controller/commands", 10
+        )
+        self.gripper_action_pub = self.create_publisher(
+            Float64MultiArray, "/gripper_streaming_controller/commands", 10
+        )
 
-        # Timer to publish actions (~30 Hz)
+        # timer to publish actions (~30 Hz). Need to pick this rate to match the Hz at which I think I can run my VLA or faster
         self.create_timer(1.0 / 30.0, self._publish_action_cb)
-        self.get_logger().info("ROS 2 Shared Memory Bridge initialized and ready (6 Total Joints).")
+        self.get_logger().info("ROS 2 Shared Memory Bridge initialized and ready (Streaming Controller Mode).")
+        self.prev_action = np.zeros(self.joint_shape, dtype=np.float32)
 
     def _init_shm(self, name: str, size: int) -> SharedMemory:
-        """Create SHM or attach if it already exists."""
+        """Always unlink stale RAM blocks first to guarantee a fresh, clean segment."""
         try:
-            return SharedMemory(name=name, create=True, size=size)
-        except FileExistsError:
-            return SharedMemory(name=name, create=False, size=size)
+            shm = SharedMemory(name=name, create=False)
+            shm.close()
+            shm.unlink()
+        except FileNotFoundError:
+            pass
+
+        return SharedMemory(name=name, create=True, size=size)
 
     def _js_cb(self, msg: JointState):
-        # no guarantee of joint ordering in /joint_states, so map by name specified in URDF/joint_names
         for name, pos in zip(msg.name, msg.position):
             if name in self.joint_names:
                 idx = self.joint_names.index(name)
@@ -79,30 +89,24 @@ class ROS2GazeboBridgeNode(Node):
 
     def _publish_action_cb(self):
         action = self.arr_action.copy()
-        if np.all(action == 0.0):
-            return  # No action set yet
 
-        arm_msg = JointTrajectory()
-        arm_point = JointTrajectoryPoint()
-        arm_point.positions = action[:5].tolist()  # First 5 elements -> Arm
-        arm_point.time_from_start.nanosec = int(1e8 / 3)
-        arm_msg.points.append(arm_point)
+        if np.all(action == 0.0) or np.isnan(action).any() or np.all(action == self.prev_action):
+            return
+
+        arm_msg = Float64MultiArray()
+        arm_msg.data = [float(x) for x in action[:5]]
         self.arm_action_pub.publish(arm_msg)
 
-        gripper_msg = JointTrajectory()
-        gripper_point = JointTrajectoryPoint()
-        gripper_point.positions = [action[5].item()]  # Index 5 -> Gripper
-        gripper_point.time_from_start.nanosec = int(1e8 / 3)
-        gripper_msg.points.append(gripper_point)
+        gripper_msg = Float64MultiArray()
+        gripper_msg.data = [float(action[5])]
         self.gripper_action_pub.publish(gripper_msg)
-
+        
+        self.prev_action = action.copy()
+        
     def destroy_node(self):
         for shm in [self.shm_cam_overhead, self.shm_cam_wrist, self.shm_joint_state, self.shm_action]:
             shm.close()
-            try:
-                shm.unlink()
-            except FileNotFoundError:
-                pass
+            shm.unlink()
         super().destroy_node()
 
 def main(args=None):
