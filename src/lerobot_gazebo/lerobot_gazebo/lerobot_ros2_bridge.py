@@ -6,6 +6,7 @@ from std_msgs.msg import Float64MultiArray
 import numpy as np
 from cv_bridge import CvBridge
 from multiprocessing.shared_memory import SharedMemory
+from ros_gz_interfaces.srv import ControlWorld
 
 class ROS2GazeboBridgeNode(Node):
     def __init__(self):
@@ -35,13 +36,16 @@ class ROS2GazeboBridgeNode(Node):
         self.shm_cam_wrist = self._init_shm("shm_cam_wrist", self.img_bytes)
         self.shm_joint_state = self._init_shm("shm_joint_state", self.joint_bytes)
         self.shm_action = self._init_shm("shm_action", self.joint_bytes)
-
+        self.shm_reset = self._init_shm("shm_reset", 1)
+        
         # create NumPy array views onto shared RAM
         self.arr_overhead = np.ndarray(self.img_shape, dtype=np.uint8, buffer=self.shm_cam_overhead.buf)
         self.arr_wrist = np.ndarray(self.img_shape, dtype=np.uint8, buffer=self.shm_cam_wrist.buf)
         self.arr_joint_state = np.ndarray(self.joint_shape, dtype=np.float32, buffer=self.shm_joint_state.buf)
         self.arr_action = np.ndarray(self.joint_shape, dtype=np.float32, buffer=self.shm_action.buf)
-
+        self.arr_reset = np.ndarray((1,), dtype=np.uint8, buffer=self.shm_reset.buf)
+        
+        self.arr_reset.fill(0)
         self.arr_action.fill(0.0)
 
         # subscriptions
@@ -56,11 +60,18 @@ class ROS2GazeboBridgeNode(Node):
         self.gripper_action_pub = self.create_publisher(
             Float64MultiArray, "/gripper_streaming_controller/commands", 10
         )
+        
+        self.home_arm_pose = np.array([0.0, 0.0, 0.0, 0.0, 0.0], dtype=np.float32)
+        self.home_gripper_pose = np.array([0.0], dtype=np.float32)
+
 
         # timer to publish actions (~30 Hz). Need to pick this rate to match the Hz at which I think I can run my VLA or faster
         self.create_timer(1.0 / 30.0, self._publish_action_cb)
         self.get_logger().info("ROS 2 Shared Memory Bridge initialized and ready (Streaming Controller Mode).")
         self.prev_action = np.zeros(self.joint_shape, dtype=np.float32)
+        
+        self.reset_client = self.create_client(ControlWorld, "/world/robot/control")
+        self.is_resetting = False
 
     def _init_shm(self, name: str, size: int) -> SharedMemory:
         """Always unlink stale RAM blocks first to guarantee a fresh, clean segment."""
@@ -88,9 +99,17 @@ class ROS2GazeboBridgeNode(Node):
         np.copyto(self.arr_wrist, cv_img)
 
     def _publish_action_cb(self):
+        if self.is_resetting:
+            return
+
+        if self.arr_reset[0] == 1:
+            self.get_logger().info("Reset signal received from shared memory.")
+            self._reset_sim()
+            return
+
         action = self.arr_action.copy()
 
-        if np.all(action == 0.0) or np.isnan(action).any() or np.all(action == self.prev_action):
+        if np.isnan(action).any():
             return
 
         arm_msg = Float64MultiArray()
@@ -103,8 +122,37 @@ class ROS2GazeboBridgeNode(Node):
         
         self.prev_action = action.copy()
         
+        
+    def _reset_sim(self):
+        # resets floating items in sim, not the arm pose
+        self.get_logger().info("Resetting Gazebo simulation...")
+        if not self.reset_client.service_is_ready():
+            self.get_logger().warn("Reset service not ready yet. Skipping reset.")
+            self.arr_reset[0] = 0
+            return
+
+        self.get_logger().info("Resetting Gazebo simulation...")
+        self.is_resetting = True
+        
+        request = ControlWorld.Request()
+        request.world_control.reset.model_only = True
+
+        future = self.reset_client.call_async(request)
+        future.add_done_callback(self._on_reset_complete)
+
+    def _on_reset_complete(self, future):
+        try:
+            _ = future.result()
+            self.get_logger().info("Gazebo reset complete.")            
+        except Exception as e:
+            self.get_logger().error(f"Gazebo reset failed: {e}")
+
+        # clear shared memory & reset local flags on completion
+        self.arr_reset[0] = 0
+        self.is_resetting = False
+        
     def destroy_node(self):
-        for shm in [self.shm_cam_overhead, self.shm_cam_wrist, self.shm_joint_state, self.shm_action]:
+        for shm in [self.shm_cam_overhead, self.shm_cam_wrist, self.shm_joint_state, self.shm_action, self.shm_reset]:
             shm.close()
             shm.unlink()
         super().destroy_node()

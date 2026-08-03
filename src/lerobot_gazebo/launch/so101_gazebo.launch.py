@@ -14,7 +14,7 @@ from launch_ros.parameter_descriptions import ParameterValue
 def generate_launch_description():
     lerobot_description = get_package_share_directory("lerobot_description") # where package installs
     lerobot_gazebo = get_package_share_directory("lerobot_gazebo")
-
+    
     model_arg = DeclareLaunchArgument(name="model", default_value=os.path.join(
                                         lerobot_description, "urdf", "so101_w_cameras.urdf.xacro"
                                         ),
@@ -77,7 +77,7 @@ def generate_launch_description():
             
             "/overhead_camera/image_raw@sensor_msgs/msg/Image[ignition.msgs.Image",
             "/overhead_camera/camera_info@sensor_msgs/msg/CameraInfo[ignition.msgs.CameraInfo",
-            
+            "/world/robot/control@ros_gz_interfaces/srv/ControlWorld",
             # # depth Stream
             # "/camera/depth_image@sensor_msgs/msg/Image[ignition.msgs.Image",
             

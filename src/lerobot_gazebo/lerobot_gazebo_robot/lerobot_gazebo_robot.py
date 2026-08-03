@@ -36,6 +36,7 @@ class ROS2GazeboRobot(Robot):
         self.shm_cam_wrist = None
         self.shm_joint_state = None
         self.shm_action = None
+        
         self.prev_action = np.zeros(self.joint_shape, dtype=np.float32)
     
     # required abstract properties
@@ -123,9 +124,9 @@ class ROS2GazeboRobot(Robot):
 
     def send_action(self, action: np.ndarray | dict) -> np.ndarray:
             """Writes command straight to shared RAM for ROS 2 node."""
-            # 1. Extract array if action is passed as a dictionary
+            # extract array if action is passed as a dictionary
             if isinstance(action, dict):
-                if not action:  # <-- Handle empty dict when LeRobot stops/tears down
+                if not action:
                     return self.arr_action.copy()
 
                 if "action" in action:
