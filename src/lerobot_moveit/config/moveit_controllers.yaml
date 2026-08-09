@@ -1,3 +1,6 @@
+# This file specifies which controllers MoveIt should connect to when executing commands.
+# It specifies the name, and the type of the underlying controller (note the namespace needs to be correct so the topic names match)
+# The controller types are a bit different than ros2_control, but FollowJointTrajectory matches with ros2_control's JointTrajectoryController
 moveit_controller_manager: moveit_simple_controller_manager/MoveItSimpleControllerManager
 
 moveit_simple_controller_manager:
