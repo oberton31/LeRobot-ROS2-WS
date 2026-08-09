@@ -1,4 +1,4 @@
-planning_plugin: ompl_interface/OMPLPlanner
+planning_plugin: ompl_interface/OMPLPlanner # OMPL is a planning library used as a backend by MoveIt
 
 # Pre/Post processing plugins. Do things like adding time parameterization, nudge start states out of collision, etc.
 request_adapters: >-
