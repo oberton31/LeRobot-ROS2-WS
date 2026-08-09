@@ -1,0 +1,25 @@
+moveit_setup_assistant_config:
+  urdf:
+    package: lerobot_description
+    relative_path: urdf/so101_w_cameras.urdf.xacro
+  srdf:
+    relative_path: config/so101.srdf
+  package_settings:
+    author_name: Oliver Berton
+    author_email: bertonoliver50@gmail.com
+    generated_timestamp: 1786298600
+  control_xacro:
+    command:
+      - position
+    state:
+      - position
+      - velocity
+  modified_urdf:
+    xacros:
+      - control_xacro
+  control_xacro:
+    command:
+      - position
+    state:
+      - position
+      - velocity

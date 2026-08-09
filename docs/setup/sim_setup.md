@@ -23,7 +23,11 @@ sudo apt install -y \
     ros-humble-controller-manager \
     ros-humble-joint-state-broadcaster \
     ros-humble-joint-trajectory-controller \
-    ros-humble-forward-command-controller
+    ros-humble-forward-command-controller \
+
+sudo apt install ros-humble-moveit
+
+sudo apt install ros-$ROS_DISTRO-yasmin ros-$ROS_DISTRO-yasmin-*
 ```
 
 Don't forget to source ROS before using it:
