@@ -7,6 +7,7 @@ from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, SetE
 from launch.substitutions import Command, LaunchConfiguration
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.conditions import IfCondition
+from launch_ros.actions import SetParameter
 
 from launch_ros.actions import Node
 from launch_ros.parameter_descriptions import ParameterValue
@@ -63,9 +64,12 @@ def generate_launch_description():
         PythonLaunchDescriptionSource(ros2_moveit_rviz_path),
         launch_arguments=common_launch_args
     )
+    
+    sim_parameter = SetParameter(name="use_sim_time", value=is_sim)
         
     return LaunchDescription([
         is_sim_arg,
+        sim_parameter,
         gazebo_launch,
         ros2_control_launch,
         ros2_moveit_move_group_launch,

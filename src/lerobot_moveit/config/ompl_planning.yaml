@@ -12,7 +12,7 @@ request_adapters: >-
 planner_configs:
   RRTConnectkConfigDefault:
     type: geometric::RRTConnect
-    range: 0.0
+    range: 0.0 # setting range to 0.0 lets planner choose max step size for RRT-style planning automatically
 
 arm:
   default_planner_config: RRTConnectkConfigDefault
