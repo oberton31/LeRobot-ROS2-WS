@@ -25,6 +25,7 @@ setup(
     license='TODO: License declaration',
     entry_points={
         'console_scripts': [
+            'lerobot_state_machine_node = state_machine.sm_node:main'
         ],
     },
 )

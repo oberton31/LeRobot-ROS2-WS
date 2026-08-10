@@ -67,11 +67,20 @@ def generate_launch_description():
     
     sim_parameter = SetParameter(name="use_sim_time", value=is_sim)
         
+    state_machine_node = Node(
+        package="state_machine",
+        executable="lerobot_state_machine_node",
+        name="lerobot_state_machine_node",
+        output="screen",
+        parameters=[{"use_sim_time": is_sim}]
+    )
+    
     return LaunchDescription([
         is_sim_arg,
         sim_parameter,
         gazebo_launch,
         ros2_control_launch,
         ros2_moveit_move_group_launch,
-        ros2_moveit_rviz_launch
+        ros2_moveit_rviz_launch,
+        state_machine_node
     ])

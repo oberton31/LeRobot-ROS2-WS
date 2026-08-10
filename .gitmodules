@@ -1,0 +1,3 @@
+[submodule "src/yasmin"]
+	path = src/yasmin
+	url = https://github.com/uleroboticsgroup/yasmin.git

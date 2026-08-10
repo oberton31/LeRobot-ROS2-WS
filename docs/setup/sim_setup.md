@@ -26,13 +26,18 @@ sudo apt install -y \
     ros-humble-forward-command-controller \
 
 sudo apt install ros-humble-moveit
-
-sudo apt install ros-$ROS_DISTRO-yasmin ros-$ROS_DISTRO-yasmin-*
 ```
 
-Don't forget to source ROS before using it:
+Get submodules and update dependencies:
 
 ```bash
+git submodule update --init --recursive
+rosdep install --from-paths src --ignore-src -r -y
+```
+Don't forget to build and source ROS before using it:
+
+```bash
+colcon build
 source /opt/ros/humble/setup.bash
 ```
 
