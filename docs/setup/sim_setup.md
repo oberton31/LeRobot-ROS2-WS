@@ -24,6 +24,7 @@ sudo apt install -y \
     ros-humble-joint-state-broadcaster \
     ros-humble-joint-trajectory-controller \
     ros-humble-forward-command-controller \
+    ros-humble-tf-transformations \
 
 sudo apt install ros-humble-moveit
 ```
