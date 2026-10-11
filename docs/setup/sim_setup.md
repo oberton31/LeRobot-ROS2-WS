@@ -175,12 +175,14 @@ pip install pynput
 Clone this repository into your ROS workspace:
 
 ```bash
-git clone git@github.com:oberton31/LeRobot-ROS2-WS.git
+git clone --recurse-submodules git@github.com:oberton31/LeRobot-ROS2-WS.git
 ```
 
-Build the workspace:
+Build the workspace (need to deactivate conda env the first time you build yasmin):
 
 ```bash
+conda deactivate lerobot
+conda deactive # completely deactivate conda
 cd ~/LeRobot-ROS2-WS
 source /opt/ros/humble/setup.bash
 colcon build
